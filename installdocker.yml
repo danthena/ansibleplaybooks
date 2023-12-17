@@ -1,0 +1,49 @@
+---
+- name: Install Docker
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Initial update of package cache and upgrade existing packages
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: true
+
+    - name: Remove any conflicting apps if they already exist
+      ansible.builtin.apt:
+        state: "absent"
+        pkg:
+        - docker.io
+        - docker-doc
+        - docker.docker-compose
+        - podman-docker
+        - containerd
+        - runc
+
+    - name: Install required apps
+      ansible.builtin.apt:
+        pkg:
+        - ca-certificates
+        - curl
+        - gnupg
+
+    - name: Add Docker GPG apt key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
+
+    - name: Add Docker Repository
+      ansible.builtin.apt_repository:
+        repo: deb https://download.docker.com/linux/debian bookworm stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      ansible.builtin.apt:
+        state: present
+        update_cache: true
+        pkg:
+        - docker-ce
+        - containerd.io
+        - docker-buildx-plugin
+        - docker-compose-plugin
+        - docker-ce-cli
